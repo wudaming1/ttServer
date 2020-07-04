@@ -7,12 +7,14 @@ const { get, post, put, del } = server.router;
 
 let login = async (ctx) => {
     let userInfo = ctx.data;
-    let item = await User.findOne({'name': userInfo.name}, 'name password').exec();
+    console.log(userInfo);
+    let item = await User.findOne({name: userInfo.name}, 'name password').exec();
     let result = {
         code:1000,
         message: '',
         data:''
     }
+    console.log(item);
     if(!item){
         result.message = '没有这个用户';
         result.code = 2000;
