@@ -38,38 +38,48 @@ let addCashier = async (ctx) => {
 let query = async (ctx) => {
     let params = ctx.data;
     let query = Deal.find();
+    let countQuery = Deal.find();
     query.sort({time: -1});
     if(params.userId){
         query = query.where('userId').equals(params.userId);
+        countQuery = countQuery.where('userId').equals(params.userId);
     }
     if(params.startTime){
         query = query.where('time').gt(params.startTime);
+        countQuery = countQuery.where('time').gt(params.startTime);
     }
 
     if(params.endTime){
         query = query.where('time').lt(params.endTime);
+        countQuery = countQuery.where('time').lt(params.endTime);
     }
 
     if(params.shop){
         query = query.where('shop').equals(params.shop);
+        countQuery = countQuery.where('shop').equals(params.shop);
     }
-
-    if(params.pageCount){
-        query = query.limit(params.pageSize);
-    }else{
-        query = query.limit(5);
+    let limit = 5;
+    let page = 1;
+    if(params.pageSize !== null){
+        limit = params.pageSize;
     }
+    if(params.page !== null){
+        page = params.page
+    }
+    query = query.limit(limit);
     console.log(params)
     let result = {
         code:1000,
         message: '',
         data:'请求成功！'
     };
-
+    let count = await countQuery.count();
+    query.skip(2)
+    query.skip(limit*(page -1))
     let deals = await query.exec();
 
     result.data = {
-        total:deals.length,
+        total:count,
         items:deals
     }
     return result;
