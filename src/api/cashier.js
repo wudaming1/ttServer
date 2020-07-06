@@ -1,5 +1,5 @@
 const { status, json, send } = require('server/reply');
-const Deal =require('../model/deal.js').model
+const Deal = require('../model/deal.js').model
 
 const server = require('server');
 const { get, post } = server.router;
@@ -7,18 +7,18 @@ const { get, post } = server.router;
 
 let addCashier = async (ctx) => {
     let dealInfo = ctx.data;
-    console.log('新增收银记录：'+JSON.stringify(dealInfo));
+    console.log('新增收银记录：' + JSON.stringify(dealInfo));
 
     let deal = new Deal(dealInfo);
     let date = new Date();
     deal.time = Date.parse(date);
     let result = {
-        code:1000,
+        code: 1000,
         message: '',
-        data:'保存成功！'
+        data: '保存成功！'
     };
     result.data = await deal.save();
-    
+
     return result;
 }
 
@@ -39,48 +39,48 @@ let query = async (ctx) => {
     let params = ctx.data;
     let query = Deal.find();
     let countQuery = Deal.find();
-    query.sort({time: -1});
-    if(params.userId){
+    query.sort({ time: -1 });
+    if (params.userId) {
         query = query.where('userId').equals(params.userId);
         countQuery = countQuery.where('userId').equals(params.userId);
     }
-    if(params.startTime){
+    if (params.startTime) {
         query = query.where('time').gt(params.startTime);
         countQuery = countQuery.where('time').gt(params.startTime);
     }
 
-    if(params.endTime){
+    if (params.endTime) {
         query = query.where('time').lt(params.endTime);
         countQuery = countQuery.where('time').lt(params.endTime);
     }
 
-    if(params.shop){
+    if (params.shop) {
         query = query.where('shop').equals(params.shop);
         countQuery = countQuery.where('shop').equals(params.shop);
     }
     let limit = 5;
     let page = 1;
-    if(params.pageSize !== null){
+    if (params.pageSize !== null) {
         limit = params.pageSize;
     }
-    if(params.page !== null){
+    if (params.page !== null) {
         page = params.page
     }
     query = query.limit(limit);
     console.log(params)
     let result = {
-        code:1000,
+        code: 1000,
         message: '',
-        data:'请求成功！'
+        data: '请求成功！'
     };
     let count = await countQuery.count();
     query.skip(2)
-    query.skip(limit*(page -1))
+    query.skip(limit * (page - 1))
     let deals = await query.exec();
 
     result.data = {
-        total:count,
-        items:deals
+        total: count,
+        items: deals
     }
     return result;
 
@@ -89,42 +89,42 @@ let query = async (ctx) => {
 let queryToatl = async (ctx) => {
     let params = ctx.data;
     let query = Deal.find();
-    if(params.startTime){
+    if (params.startTime) {
         query = query.where('time').gt(params.startTime);
     }
 
-    if(params.endTime){
+    if (params.endTime) {
         query = query.where('time').lt(params.endTime);
     }
 
-    if(params.shop){
+    if (params.shop) {
         query = query.where('shop').equals(params.shop);
     }
     let result = {
-        code:1000,
+        code: 1000,
         message: '',
-        data:'请求成功！'
+        data: '请求成功！'
     };
 
     let deals = await query.exec();
-    
+
     let total = 0;
     let wx = 0;
     let xj = 0;
     let zfb = 0;
     for (let elem of deals.values()) {
         total += elem.count;
-        if(elem.type === 'wx'){
+        if (elem.type === 'wx') {
             wx += elem.count;
-        } else if(elem.type === 'zfb'){
+        } else if (elem.type === 'zfb') {
             zfb += elem.count;
-        } else if(elem.type === 'xj'){
+        } else if (elem.type === 'xj') {
             xj += elem.count;
         }
     }
 
     result.data = {
-        total:total,
+        total: total,
         wx: wx,
         zfb: zfb,
         xj: xj,
@@ -142,14 +142,14 @@ let queryToatl = async (ctx) => {
  */
 let deleteItem = async (ctx) => {
     let id = ctx.data['_id'];
-    
+
     let deleteRes = await Deal.findByIdAndRemove(id).exec();
     let result = {
-        code:1000,
+        code: 1000,
         message: '',
         data: deleteRes
     };
-    if(deleteRes === null){
+    if (deleteRes === null) {
         result.code = 2000;
         result.message = '不存在这条记录！'
     }
@@ -170,17 +170,74 @@ let modifyItem = async (ctx) => {
     let id = ctx.data['id'];
     let money = ctx.data['money'];
     let type = ctx.data['type'];
-    let updateRes = await Deal.findByIdAndUpdate(id,{count:money,type: type});
+    let updateRes = await Deal.findByIdAndUpdate(id, { count: money, type: type });
     console.log(updateRes);
     let result = {
-        code:1000,
+        code: 1000,
         message: '',
         data: updateRes
     };
-    if(updateRes === null){
+    if (updateRes === null) {
         result.code = 2000;
         result.message = '不存在这条记录！'
     }
+    return result;
+}
+
+let report = async (ctx) => {
+    let params = ctx.data;
+    let result = {
+        code: 1000,
+        message: '',
+        data: '请求成功！'
+    };
+
+    result.data = [];
+    const date = new Date(params.startTime)
+    let item = {
+        date: date.toLocaleDateString
+    }
+    let data = queryCashInDay(date, params.shop)
+    
+    
+
+    return result;
+}
+
+/**
+ * 
+ * @param {当天的时间Date类型} time 
+ * @param shop 门店code
+ */
+async function queryCashInDay(time, shop) {
+    let date = new Date(time);
+    date.setHours(0, 0, 0, 0)
+    let startTime = date.getTime()
+    date.setHours(23, 59, 59, 0)
+    let endTime = date.getTime()
+    let query = Deal.find();
+    query.where('time').gt(startTime);
+    query.where('time').lt(endTime);
+    query.where('shop').equals(shop);
+    let deals = await query.exec();
+    let result = {
+        total: 0,
+        wx: 0,
+        xj: 0,
+        zfb: 0,
+    }
+
+    for (let elem of deals.values()) {
+        total += elem.count;
+        if (elem.type === 'wx') {
+            result.wx += elem.count;
+        } else if (elem.type === 'zfb') {
+            result.zfb += elem.count;
+        } else if (elem.type === 'xj') {
+            result.xj += elem.count;
+        }
+    }
+
     return result;
 }
 
@@ -189,5 +246,6 @@ exports.api = [
     post('/cash/query', query),
     post('/cash/queryTotal', queryToatl),
     post('/cash/delete', deleteItem),
-    post('/cash/modify', modifyItem)
+    post('/cash/modify', modifyItem),
+    post('/cash/reoprt', report)
 ]
