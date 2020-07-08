@@ -10,9 +10,9 @@
   "author": "wudaming",
   "license": "ISC",
   "dependencies": {
+    "mongoose": "^5.0.15",
     "server": "^1.0.29",
-    "mongoose": "^5.0.15"
+    "tencentcloud-sdk-nodejs": "^3.0.201"
   },
-  "devDependencies": {
-  }
+  "devDependencies": {}
 }
