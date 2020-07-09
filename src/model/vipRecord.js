@@ -1,4 +1,5 @@
 const { model, Schema } = require('mongoose');
+const {isEmpty} = require('../utils/check')
 
 const Types = ['Charge', 'Consume']
 
@@ -53,8 +54,10 @@ exports.queryRecord = async (params) =>{
     let query = Model.find();
     let countQuery = Model.find();
     query.sort({ time: -1 });
-    query.byPhone(params.phone);
-    countQuery.byPhone(params.phone);
+    if(!isEmpty(params.phone)){
+        query.byPhone(params.phone);
+        countQuery.byPhone(params.phone);
+    }
     if(params.type !== undefined){
         query.byType(Types[params.type])
         countQuery.byType(Types[params.type]);
