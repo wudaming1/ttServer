@@ -32,10 +32,10 @@ schame.query.byType = function (type) {
 
 schame.query.byTime = function (startTime, endTime) {
     if (!!startTime) {
-        this.where('time').gt(params.startTime);
+        this.where('time').gt(startTime);
     }
     if (!!endTime) {
-        this.where('time').lt(params.startTime);
+        this.where('time').lt(endTime);
     }
     return this;
 };
@@ -47,8 +47,7 @@ async function count(params) {
     let query = Model.find();
     query.byType(params.type);
     query.byTime(params.startTime, params.endTime);
-    let count = await query.count();
-    return count;
+    return await query.count();
 }
 
 async function queryItems(params) {
@@ -81,6 +80,9 @@ async function deleteItem(params) {
 
 module.exports={
     Account:Model,
-    addItem:addItem
+    addItem:addItem,
+    queryItems,
+    modifyItem:modifyItem,
+    deleteItem:deleteItem
 }
     

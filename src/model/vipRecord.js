@@ -34,8 +34,8 @@ exports.Types = Types
 
 /**
  * 
- * @param {参数} params 
- * @param {0|1} type 
+ * @param {Object} params 参数对象
+ * @param {Number} type
  */
 exports.saveRecord = async function (params, type) {
     const date = new Date();

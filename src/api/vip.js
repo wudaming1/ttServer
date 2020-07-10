@@ -30,7 +30,7 @@ let create = async (ctx) => {
     } else {
         let vip = new Vip(params);
         let res = await vip.save();
-        saveRecord(params, 0);
+        await saveRecord(params, 0);
         result.data = res;
         console.log(res);
     }
