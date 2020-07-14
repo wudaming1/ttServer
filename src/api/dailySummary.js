@@ -4,10 +4,8 @@ const { post } = server.router;
 const { send, json } = server.reply;
 const moment = require('moment')
 
-const {addItem, queryItems, modifyItem, deleteItem} =require('../model/account')
-// const {addItem, queryItems, modifyItem, deleteItem} =require('../model/dailySummary')
-let addDaily = require('../model/dailySummary').addItem;
-let queryDaily = require('../model/dailySummary').queryItems;
+const prefix = 'dailySummary'
+const {addItem, queryItems, modifyItem, deleteItem} =require('../model/dailySummary')
 
 /**
  * 添加记录
@@ -18,8 +16,6 @@ async function add(ctx){
     let params = ctx.data;
     params.shop = ctx.shop;
     params.time = moment(new Date()).valueOf()
-    let date = moment(new Date()).format('yyyy-mm-dd')
-    await addDaily(Object.assign({date,params}))
     ctx.res.data = await addItem(params);
 }
 
@@ -44,7 +40,6 @@ async function modify(ctx) {
     let data = await modifyItem(ctx.data)
     if (!!data){
         ctx.res.data =data
-
     }else{
         ctx.res.message = "没有这条记录！"
     }

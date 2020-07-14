@@ -9,7 +9,7 @@ const schame = Schema({
     },
     desc: {
         type: String,
-        requird: true
+        required: true
     },
     amount: {
         type: Number,
