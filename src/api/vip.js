@@ -45,6 +45,10 @@ let queryVip = async (ctx) => {
         message: '',
         data: res[0]
     }
+    if(isEmpty(res)){
+        result.code = 2000,
+        result.message = '没有这个用户'
+    }
     console.log(res);
     return result;
 }
