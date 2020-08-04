@@ -1,5 +1,6 @@
-const { model, Schema } = require('mongoose');
-const {isEmpty} = require('../utils/check')
+const {model, Schema} = require('mongoose');
+const {isEmpty} = require('../utils/check');
+const {getMonthTimeDuration} = require('../utils/timeUtils');
 
 const Types = ['Charge', 'Consume']
 
@@ -22,10 +23,10 @@ const schema = Schema({
 });
 
 schema.query.byPhone = function (phoneNumber) {
-    return this.where({ phone: phoneNumber });
+    return this.where({phone: phoneNumber});
 };
 schema.query.byType = function (type) {
-    return this.where({ type: type });
+    return this.where({type: type});
 };
 let Model = model('VipRecord', schema)
 
@@ -33,7 +34,7 @@ exports.model = Model
 exports.Types = Types
 
 /**
- * 
+ *
  * @param {Object} params 参数对象
  * @param {Number} type
  */
@@ -50,16 +51,16 @@ exports.saveRecord = async function (params, type) {
 }
 
 
-exports.queryRecord = async (params) =>{
+exports.queryRecord = async (params) => {
     let query = Model.find();
     let countQuery = Model.find();
-    query.sort({ time: -1 });
-    if(!isEmpty(params.phone)){
+    query.sort({time: -1});
+    if (!isEmpty(params.phone)) {
         query.byPhone(params.phone);
         countQuery.byPhone(params.phone);
     }
-    if(params.type !== undefined){
-        query.byType(Types[params.type])
+    if (params.type !== undefined) {
+        query.byType(Types[params.type]);
         countQuery.byType(Types[params.type]);
     }
     if (params.startTime) {
@@ -80,16 +81,42 @@ exports.queryRecord = async (params) =>{
         page = params.page
     }
     query = query.limit(limit);
-    console.log(params)
     let count = await countQuery.count();
-    query.skip(2)
-    query.skip(limit * (page - 1))
+    query.skip(limit * (page - 1));
     let items = await query.exec();
 
-    result = {
+    return {
         total: count,
         items: items
+    };
+};
+
+exports.yearReport = async (year) => {
+    let query = Model.find();
+    let beginTime = new Date(year, 0, 1).getTime();
+    let endDay = new Date(year, 11, 0);
+    endDay.setHours(23, 59, 59);
+    let endTime = endDay.getTime();
+    query.where('createTime').gt(beginTime);
+    query.where('createTime').lt(endTime);
+    let items = await query.exec();
+    let result = [];
+    for (let i = 1; i < 13; i++) {//月份循环
+        let time = getMonthTimeDuration(year, i);
+        let monthRecord = items.filter(item => item.createTime > time.startTime && item.createTime <= time.endTime);
+        let monthReport = {
+            totalCharge: 0,
+            totalConsume: 0,
+        };
+        monthRecord.forEach(element => {
+            if (element.type === Types[0]) {
+                monthReport.totalCharge += element.money;
+            } else {
+                monthReport.totalConsume += element.money;
+            }
+        });
+        result.push(monthReport);
+
     }
-    console.log(result)
     return result;
-}
+};

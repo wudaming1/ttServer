@@ -1,10 +1,9 @@
 // Import the library
 const server = require('server');
-const { get, post, put, del } = server.router;
-const api = require('./src/api/index.js').api
+const api = require('./src/api/index.js').api;
 
-require('./src/model/db.js')
-const {middles} = require('./src/middle/index')
+require('./src/model/db.js');
+const {middles} = require('./src/middle/index');
 
 
 

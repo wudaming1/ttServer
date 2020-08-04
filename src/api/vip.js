@@ -2,7 +2,7 @@ const Vip = require('../model/vip').model
 const queryList = require('../model/vip').queryList
 // const saveRecord = require('../model/vipRecord').saveRecord
 // const queryRecord = require('../model/vipRecord').queryRecord
-const {saveRecord, queryRecord} = require('../model/vipRecord')
+const {saveRecord, queryRecord, yearReport} = require('../model/vipRecord')
 
 const server = require('server');
 // const { type } = require('server/reply');
@@ -92,7 +92,6 @@ let charge = async (ctx) => {
     }, 0);
     result.data = `充值成功 ${money} 元！`;
     result.message = `充值成功 ${money} 元！`;
-    console.log(res);
     return result;
 }
 
@@ -150,15 +149,14 @@ async function queryVipRecord(ctx){
         code: 1000,
         message: '查询消费记录！',
         data: items
-    }
-    console.log(result)
+    };
     return result;
 }
 
 async function queryVipList(ctx){
     let result = {
         code: 1000,
-        message: '查询消费记录！',
+        message: '查询用户列表！',
         data: ''
     }
     result.data = await queryList(ctx.data)
@@ -173,15 +171,22 @@ async function modifyPassword(ctx){
         code: 1000,
         message: '密码修改成功！',
         data: ''
-    }
+    };
     if(old[0].password !== params.oldPassword){
         result.code = 2000;
-        result.message = '旧密码错误！'
+        result.message = '旧密码错误！';
         return result;
     }
-    let updateRes =  await Vip.findByIdAndUpdate(old[0]._id,{password:params.newPassword}).exec();
-    result.data = updateRes
+    result.data = await Vip.findByIdAndUpdate(old[0]._id, {password: params.newPassword}).exec()
     return result;
+}
+
+async function getYearReport(ctx){
+    let year = ctx.data;
+    if (!year){
+        throw new Error('缺少年份参数！')
+    }
+    ctx.res.data = await yearReport(year);
 }
 
 exports.api = [
@@ -192,4 +197,5 @@ exports.api = [
     post('/vip/consume', consume),
     post('/vip/list', queryVipList),
     post('/vip/modifyPassword', modifyPassword),
-]
+    post('/vip/getYearReport', getYearReport),
+];
