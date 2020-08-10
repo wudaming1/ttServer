@@ -32,10 +32,9 @@ const Model = model('Vip', vipSchema)
 
 async function queryList(params) {
     let query = Model.find();
-    if (params.phone !== undefined) {
+    if (params && params.phone !== undefined) {
         query.byPhone(params.phone)
     }
-
     return query.exec();
 }
 

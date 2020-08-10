@@ -127,5 +127,18 @@ router.post('/vip/list', queryVipList);
 router.post('/vip/modifyPassword', modifyPassword);
 router.post('/vip/getYearReport', getYearReport);
 
-
+router.get('/vip/summary', async (ctx) => {
+    let items = await queryList();
+    let data = {
+        total: 0,
+        left: 0,
+        consume:0
+    }
+    items.forEach(item => {
+        data.total += item.totalCharge;
+        data.left += item.money;
+    })
+    data.consume = data.total - data.left;
+    ctx.body.data = data
+});
 
