@@ -105,6 +105,7 @@ exports.yearReport = async (year) => {
         let time = getMonthTimeDuration(year, i);
         let monthRecord = items.filter(item => item.createTime > time.startTime && item.createTime <= time.endTime);
         let monthReport = {
+            month: i,
             totalCharge: 0,
             totalConsume: 0,
         };

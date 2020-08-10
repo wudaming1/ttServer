@@ -111,11 +111,11 @@ async function modifyPassword(ctx) {
 }
 
 async function getYearReport(ctx) {
-    let year = ctx.request.body;
-    if (!year) {
+    let params = ctx.request.body;
+    if (!params.year) {
         throw new Error('缺少年份参数！')
     }
-    ctx.body.data = await yearReport(year);
+    ctx.body.data = await yearReport(params.year);
 }
 
 router.post('/vip/create', create);
