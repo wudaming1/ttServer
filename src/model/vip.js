@@ -1,4 +1,4 @@
-const { model, Schema } = require('mongoose');
+const {model, Schema} = require('mongoose');
 
 const vipSchema = Schema({
     money: {
@@ -25,15 +25,14 @@ const vipSchema = Schema({
 });
 
 
-
-vipSchema.query.byPhone = function(phoneNumber) {
-    return this.where({ phone: phoneNumber });
-  };
+vipSchema.query.byPhone = function (phoneNumber) {
+    return this.where({phone: phoneNumber});
+};
 const Model = model('Vip', vipSchema)
 
-async function queryList(params){
+async function queryList(params) {
     let query = Model.find();
-    if(params.phone !== undefined ){
+    if (params.phone !== undefined) {
         query.byPhone(params.phone)
     }
 

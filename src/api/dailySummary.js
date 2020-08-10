@@ -1,35 +1,32 @@
-const server = require('server');
-// const { type } = require('server/reply');
-const { post } = server.router;
-const { send, json } = server.reply;
-const moment = require('moment')
 
-const prefix = 'dailySummary'
-const {addItem, queryItems, modifyItem, deleteItem} =require('../model/dailySummary')
+const {addItem, queryItems, modifyItem, deleteItem} =require('../model/dailySummary');
+const {router} = require('./index');
+
 
 /**
  * 添加记录
  * @param ctx
- * @returns {Promise<void>}
  */
 async function add(ctx){
-    let params = ctx.data;
-    params.shop = ctx.shop;
-    params.time = moment(new Date()).valueOf()
-    ctx.res.data = await addItem(params);
+    let params = ctx.request.body;
+    params.shop = ctx.headers.shop;
+    params.time = new Date().getTime();
+    ctx.body.data = await addItem(params);
 }
+router.post('/account/add', add);
+
 
 /**
  * 查询记录，支持分页
  * @param ctx
- * @returns {Promise<void>}
  */
 async function queryList(ctx){
-    let params = ctx.data;
-    params.shop = ctx.shop;
-    let data = await queryItems(params)
-    ctx.res.data = data;
+    let params = ctx.request.body;
+    params.shop = ctx.headers.shop;
+    ctx.body.data = await queryItems(params);
 }
+router.post('/account/query', queryList);
+
 
 /**
  * 修改记录，仅修改金额
@@ -37,27 +34,23 @@ async function queryList(ctx){
  * @returns {Promise<void>}
  */
 async function modify(ctx) {
-    let data = await modifyItem(ctx.data)
+    let data = await modifyItem(ctx.request.body);
     if (!!data){
-        ctx.res.data =data
+        ctx.body.data =data;
     }else{
-        ctx.res.message = "没有这条记录！"
+        throw new Error("没有这条记录！");
     }
-
 }
+router.post('/account/modify', modify);
+
+
 
 async function del(ctx){
-    let data = await deleteItem(ctx.data)
+    let data = await deleteItem(ctx.request.body);
     if(!!data){
         ctx.res.data = data
     }else{
-        ctx.res.message = "没有这条记录！"
+        throw new Error("没有这条记录！")
     }
 }
-
-exports.api = [
-    post('/account/add', add),
-    post('/account/query', queryList),
-    post('/account/modify', modify),
-    post('/account/delete', del),
-]
+router.post('/account/delete', del);

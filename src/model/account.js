@@ -1,4 +1,4 @@
-const { model, Schema } = require('mongoose');
+const {model, Schema} = require('mongoose');
 
 
 const schame = Schema({
@@ -25,7 +25,7 @@ const schame = Schema({
 
 schame.query.byType = function (type) {
     if (!!type) {
-        this.where({ type: type })
+        this.where({type: type})
     }
     return this;
 };
@@ -52,7 +52,7 @@ async function count(params) {
 
 async function queryItems(params) {
     let query = Model.find();
-    query.sort({ time: -1 })
+    query.sort({time: -1})
     query.byType(params.type);
     query.byTime(params.startTime, params.endTime);
     query.skip((params.page - 1) * params.pageSize);
@@ -78,11 +78,10 @@ async function deleteItem(params) {
     return await Model.findByIdAndDelete(params.id)
 }
 
-module.exports={
-    Account:Model,
-    addItem:addItem,
+module.exports = {
+    Account: Model,
+    addItem: addItem,
     queryItems,
-    modifyItem:modifyItem,
-    deleteItem:deleteItem
+    modifyItem: modifyItem,
+    deleteItem: deleteItem
 }
-    

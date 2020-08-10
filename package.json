@@ -10,9 +10,14 @@
   "author": "wudaming",
   "license": "ISC",
   "dependencies": {
+    "dotenv": "^8.2.0",
+    "jsonwebtoken": "^8.5.1",
+    "koa": "^2.13.0",
+    "koa-bodyparser": "^4.3.0",
+    "koa-jwt": "^4.0.0",
+    "koa-router": "^9.1.0",
     "moment": "^2.27.0",
     "mongoose": "^5.0.15",
-    "server": "^1.0.29",
     "tencentcloud-sdk-nodejs": "^3.0.201"
   },
   "devDependencies": {}

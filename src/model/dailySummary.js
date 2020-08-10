@@ -1,5 +1,6 @@
 const { model, Schema } = require('mongoose');
 const moment =require('moment')
+const {isEmpty} = require('../utils/check');
 
 const schema = Schema({
     createTime:{
@@ -24,7 +25,7 @@ const schema = Schema({
         type:String,
         required:true
     }
-})
+});
 
 schema.query.byDate = function (date) {
     if (!!date) {
@@ -69,13 +70,14 @@ async function queryItems(params) {
 
 /**
  *
- * @param params {{createTime:Number,inMoney:Number,outMoney:Number}}
- * @returns {Promise<any>}
+ * @param params {{time:Number,amount:Number,type:String}}
+ * @returns {Object}
  */
 async function addItem(params) {
     let data = Object.assign({},params)
-    data.updateTime = params.createTime;
-    data.date = moment(data.createTime).format('yyyy-mm-dd')
+    data.updateTime = params.time;
+    data.createTime = params.time;
+    data.date = moment(data.time).format('yyyy-mm-dd')
     let updateRes = await doUpdate(data)
     if (updateRes){
         return updateRes
@@ -90,16 +92,16 @@ async function addItem(params) {
 }
 
 async function doUpdate(params){
-    let item = await Model.find().byDate(params.date).exec()
-    if (item){
+    let items = await Model.find().byDate(params.date).exec()
+
+    if (!isEmpty(items)){
         if (params.type === 'in'){
-            item.inMoney += params.amount
+            params.inMoney = items[0].inMoney + params.amount
         }else {
-            item.outMoney += params.amount
+            params.outMoney = items[0].outMoney + params.amount
         }
-        item.updateTime = params.time;
-        item.createTime = params.time;
-        return await Model.findByIdAndUpdate(item._id,item)
+        params.updateTime = params.time;
+        return await Model.findByIdAndUpdate(items[0]._id,params)
     }else{
         return false
     }
@@ -122,4 +124,3 @@ module.exports={
     modifyItem,
     deleteItem
 }
-    

@@ -1,30 +1,16 @@
-const { status, json, send } = require('server/reply');
-const Deal = require('../model/deal.js').model
-
-const server = require('server');
-const { get, post } = server.router;
+const Deal = require('../model/deal.js').model;
+const {router} = require('./index');
 
 
-let addCashier = async (ctx) => {
-    let dealInfo = ctx.data;
-    console.log('新增收银记录：' + JSON.stringify(dealInfo));
-
-    let deal = new Deal(dealInfo);
-    let date = new Date();
-    deal.time = Date.parse(date);
-    let result = {
-        code: 1000,
-        message: '',
-        data: '保存成功！'
-    };
-    result.data = await deal.save();
-
-    return result;
-}
+router.post('/cash/add', async (ctx) => {
+    let deal = new Deal(ctx.request.body);
+    deal.time = new Date().getTime();
+    ctx.body.data = await deal.save();
+});
 
 /**
- * 
- * @param {} ctx 
+ *
+ * @param  ctx
  * 数据格式:
  * {
  *  userId: xxx,
@@ -35,8 +21,8 @@ let addCashier = async (ctx) => {
  *  page: 1,
  * }
  */
-let query = async (ctx) => {
-    let params = ctx.data;
+router.post('/cash/query', async (ctx) => {
+    let params = ctx.request.body;
     let query = Deal.find();
     let countQuery = Deal.find();
     query.sort({ time: -1 });
@@ -67,27 +53,20 @@ let query = async (ctx) => {
         page = params.page
     }
     query = query.limit(limit);
-    console.log(params)
-    let result = {
-        code: 1000,
-        message: '',
-        data: '请求成功！'
-    };
+
     let count = await countQuery.count();
-    query.skip(2)
-    query.skip(limit * (page - 1))
+    query.skip(2);
+    query.skip(limit * (page - 1));
     let deals = await query.exec();
 
-    result.data = {
+    ctx.body.data = {
         total: count,
         items: deals
     }
-    return result;
+});
 
-}
-
-let queryToatl = async (ctx) => {
-    let params = ctx.data;
+router.post('/cash/queryTotal', async (ctx) => {
+    let params = ctx.request.body;
     let query = Deal.find();
     if (params.startTime) {
         query = query.where('time').gt(params.startTime);
@@ -100,11 +79,6 @@ let queryToatl = async (ctx) => {
     if (params.shop) {
         query = query.where('shop').equals(params.shop);
     }
-    let result = {
-        code: 1000,
-        message: '',
-        data: '请求成功！'
-    };
 
     let deals = await query.exec();
 
@@ -123,98 +97,58 @@ let queryToatl = async (ctx) => {
         }
     }
 
-    result.data = {
+    ctx.body.data = {
         total: total,
         wx: wx,
         zfb: zfb,
         xj: xj,
     }
-    return result;
-}
+});
 
-/**
- * 
- * @param {*} ctx 
- * params
- * {
- *  _id:'xxxx',
- * }
- */
-let deleteItem = async (ctx) => {
-    let id = ctx.data['_id'];
+router.post('/cash/delete', async (ctx) => {
+    let id = ctx.request.body['_id'];
 
     let deleteRes = await Deal.findByIdAndRemove(id).exec();
-    let result = {
-        code: 1000,
-        message: '',
-        data: deleteRes
-    };
     if (deleteRes === null) {
-        result.code = 2000;
-        result.message = '不存在这条记录！'
+        throw new Error('不存在这条记录！');
     }
-    return result;
-}
+    ctx.body.data = deleteRes;
+});
 
-/**
- * 
- * @param {*} ctx 
- * params
- * {
- *  id:'xxxx',
- * money:55，
- * type：xxx
- * }
- */
-let modifyItem = async (ctx) => {
-    let id = ctx.data['id'];
-    let money = ctx.data['money'];
-    let type = ctx.data['type'];
+router.post('/cash/modify', async (ctx) => {
+    const params = ctx.request.body;
+    let id = params['id'];
+    let money = params['money'];
+    let type = params['type'];
     let updateRes = await Deal.findByIdAndUpdate(id, { count: money, type: type });
-    console.log(updateRes);
-    let result = {
-        code: 1000,
-        message: '',
-        data: updateRes
-    };
     if (updateRes === null) {
-        result.code = 2000;
-        result.message = '不存在这条记录！'
+        throw new Error('不存在这条记录！')
     }
-    return result;
-}
+    ctx.body.data = updateRes;
+});
 
-let report = async (ctx) => {
-    let params = ctx.data;
-    let result = {
-        code: 1000,
-        message: '',
-        data: '请求成功！'
-    };
+router.post('/cash/report', async (ctx) => {
+    let params = ctx.request.body;
+    const shop = ctx.headers.shop;
 
-    result.data = [];
-    const date = new Date(params.startTime)
-    let item = {
-        date: date.toLocaleDateString
-    }
-    let data = queryCashInDay(date, params.shop)
-    
-    
+    const date = new Date(params.startTime);
+    ctx.body.data = queryCashInDay(date, shop);
 
-    return result;
-}
+});
+
+
 
 /**
- * 
- * @param {当天的时间Date类型} time 
+ *
+ * @param {Date} time
  * @param shop 门店code
  */
 async function queryCashInDay(time, shop) {
     let date = new Date(time);
-    date.setHours(0, 0, 0, 0)
-    let startTime = date.getTime()
-    date.setHours(23, 59, 59, 0)
-    let endTime = date.getTime()
+    date.setHours(0, 0, 0, 0);
+    let startTime = date.getTime();
+    date.setHours(23, 59, 59, 0);
+    let endTime = date.getTime();
     let query = Deal.find();
     query.where('time').gt(startTime);
     query.where('time').lt(endTime);
@@ -225,8 +159,9 @@ async function queryCashInDay(time, shop) {
         wx: 0,
         xj: 0,
         zfb: 0,
-    }
+    };
 
+    let total = 0;
     for (let elem of deals.values()) {
         total += elem.count;
         if (elem.type === 'wx') {
@@ -240,12 +175,3 @@ async function queryCashInDay(time, shop) {
 
     return result;
 }
-
-exports.api = [
-    post('/cash/add', addCashier),
-    post('/cash/query', query),
-    post('/cash/queryTotal', queryToatl),
-    post('/cash/delete', deleteItem),
-    post('/cash/modify', modifyItem),
-    post('/cash/reoprt', report)
-]

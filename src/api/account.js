@@ -1,68 +1,61 @@
-const server = require('server');
-// const { type } = require('server/reply');
-const { post } = server.router;
-const { send, json } = server.reply;
-const moment = require('moment')
+const moment = require('moment');
+const {router} = require('./index');
 
-const {addItem, queryItems, modifyItem, deleteItem} =require('../model/account')
-// const {addItem, queryItems, modifyItem, deleteItem} =require('../model/dailySummary')
+const {addItem, queryItems, modifyItem, deleteItem} =require('../model/account');
 let addDaily = require('../model/dailySummary').addItem;
-let queryDaily = require('../model/dailySummary').queryItems;
 
 /**
  * 添加记录
  * @param ctx
  * @returns {Promise<void>}
  */
-async function add(ctx){
-    let params = ctx.data;
-    params.shop = ctx.shop;
-    params.time = moment(new Date()).valueOf()
-    let date = moment(new Date()).format('yyyy-mm-dd')
-    await addDaily(Object.assign({date,params}))
-    ctx.res.data = await addItem(params);
-}
+router.post('/account/add', async (ctx) => {
+    let params = ctx.request.body;
+    params.shop = ctx.headers['shop'];
+    params.time = moment(new Date()).valueOf();
+    let date = moment(new Date()).format('yyyy-mm-dd');
+    await addDaily(Object.assign({date},params));
+    ctx.body.data = await addItem(params);
+});
+
+
 
 /**
  * 查询记录，支持分页
  * @param ctx
  * @returns {Promise<void>}
  */
-async function queryList(ctx){
-    let params = ctx.data;
-    params.shop = ctx.shop;
-    let data = await queryItems(params)
-    ctx.res.data = data;
-}
+router.post('/account/query', async (ctx) => {
+    let params = ctx.request.body;
+    params.shop = ctx.headers['shop'];
+    ctx.body.data = await queryItems(params);
+});
+
 
 /**
  * 修改记录，仅修改金额
  * @param ctx
  * @returns {Promise<void>}
  */
-async function modify(ctx) {
-    let data = await modifyItem(ctx.data)
+router.post('/account/modify', async (ctx) => {
+    let data = await modifyItem(ctx.request.body);
     if (!!data){
-        ctx.res.data =data
-
+        ctx.body.data =data;
     }else{
-        ctx.res.message = "没有这条记录！"
+        throw new Error('没有这条记录!');
     }
+});
 
-}
-
-async function del(ctx){
-    let data = await deleteItem(ctx.data)
+/**
+ * 删除记录
+ * @param ctx
+ * @returns {Promise<void>}
+ */
+router.post('/account/delete', async (ctx) => {
+    let data = await deleteItem(ctx.request.body);
     if(!!data){
-        ctx.res.data = data
+        ctx.body.data = data
     }else{
-        ctx.res.message = "没有这条记录！"
+        throw new Error('没有这条记录!');
     }
-}
-
-exports.api = [
-    post('/account/add', add),
-    post('/account/query', queryList),
-    post('/account/modify', modify),
-    post('/account/delete', del),
-]
+});
