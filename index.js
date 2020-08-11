@@ -26,7 +26,9 @@ app.use(async (ctx, next) => {//正常处理
         throw new Error(`错误的路径:${ctx.request.originalUrl}`)
     }
     ctx.body.code = 1000;
-    ctx.body.message = '请求成功！';
+    if (!ctx.body.message){
+        ctx.body.message = '请求成功！';
+    }
 });
 
 app.use(bodyParser());

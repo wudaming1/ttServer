@@ -70,10 +70,8 @@ let consume = async (ctx) => {
     if (password !== oldRes[0].password) {
         throw new Error('密码错误！');
     }
-    console.log(`money: ${money},old: ${oldRes.money}`);
     oldRes = oldRes[0];
-    console.log(oldRes);
-    let newMoney = oldRes.money + money;
+    let newMoney = oldRes.money - money;
     let updateTime = new Date().getTime();
     if (newMoney < 0) {
         throw new Error('消费金额大于余额!');
@@ -85,10 +83,11 @@ let consume = async (ctx) => {
             modifyTime: updateTime
         })
     saveRecord({
-        money: -money,
+        money: money,
         phone: phone
     }, 1);
-    ctx.body.data = `消费 ${-money} 元！`;
+    ctx.body.data = `消费 ${money} 元！`;
+    ctx.body.message = `消费 ${money} 元！`;
 };
 
 
