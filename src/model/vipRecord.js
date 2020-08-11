@@ -54,7 +54,7 @@ exports.saveRecord = async function (params, type) {
 exports.queryRecord = async (params) => {
     let query = Model.find();
     let countQuery = Model.find();
-    query.sort({time: -1});
+    query.sort({createTime: -1});
     if (!isEmpty(params.phone)) {
         query.byPhone(params.phone);
         countQuery.byPhone(params.phone);
